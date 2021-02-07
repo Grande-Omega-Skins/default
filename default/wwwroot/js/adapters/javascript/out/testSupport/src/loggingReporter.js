@@ -1,0 +1,42 @@
+"use strict";
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+const mocha = require("mocha");
+const events = require("events");
+class LoggingReporter extends mocha.reporters.Spec {
+    constructor(runner) {
+        super(runner);
+        this.inTest = false;
+        LoggingReporter.logEE.on('log', msg => {
+            if (this.inTest) {
+                this.testLogs.push(msg);
+            }
+        });
+        runner.on('test', test => {
+            this.inTest = true;
+            this.testLogs = [];
+        });
+        runner.on('pass', test => {
+            this.inTest = false;
+            if (LoggingReporter.alwaysDumpLogs) {
+                this.dumpLogs();
+            }
+        });
+        runner.on('fail', test => {
+            this.inTest = false;
+            this.dumpLogs();
+            console.log(new Date().toISOString().split(/[TZ]/)[1] + ' Finished');
+        });
+    }
+    dumpLogs() {
+        this.testLogs.forEach(msg => {
+            console.log(msg);
+        });
+    }
+}
+LoggingReporter.alwaysDumpLogs = false;
+LoggingReporter.logEE = new events.EventEmitter();
+module.exports = LoggingReporter;
+//# sourceMappingURL=loggingReporter.js.map
