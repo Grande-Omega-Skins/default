@@ -305,6 +305,9 @@ let traverse_variables_response = (variables_responce, memory, stack_frame_index
                                 ref: parent_ref,
                                 class_name: "update_ref",
                                 val: { att_name: variable.name, val_content: variable_ref.fst } });
+                            // if(variable_ref.fst.kind == "ref" && variable_ref.fst.val == 8){
+                            // 	console.log(variable_ref, memory)
+                            // }
                         }
                     }
                     //	console.log("requesting closure for 3: ", `global::Global.Closure.getClosure(${parent_name.split(".")[0]}, "${mySplit(variable_path, ".").suffix}")`)
@@ -380,6 +383,9 @@ let traverse_variables_response = (variables_responce, memory, stack_frame_index
                 continue;
             let res = mk_val(variable.value, variable.value != "(null)" && variable.variablesReference > 0, memory, variable.type, variable_address_num, false);
             memory = res.snd.update({ kind: "heap", ref: parent_ref, class_name: "update_ref", val: { att_name: variable.name, val_content: res.fst } });
+            // if(res.fst.kind == "ref" && res.fst.val == 8){
+            //     console.log(res, memory)
+            // }
         }
         else {
             if (stack_frame_index == 0) {
@@ -532,7 +538,14 @@ function run(get_program, get_breakpoints, stop, language, retry_count = 0, max_
                 fs.rmdirSync(dirPath);
         };
         console.log("removing dir", DATA_ROOT);
-        rmDir(DATA_ROOT, false);
+        try {
+            rmDir(DATA_ROOT, false);
+        }
+        catch (e) { }
+        try {
+            yield fs.mkdir(DATA_ROOT).catch(_ => { });
+        }
+        catch (e) { }
         let PROGRAM = Path.join(DATA_ROOT, `Program${file_suffix}.exe`);
         const SOURCE = Path.join(DATA_ROOT, `Program${file_suffix}.cs`);
         let closure_program = `
@@ -627,9 +640,11 @@ namespace Global{
                 executionPolicy: 'Bypass',
                 noProfile: true
             });
-            ps.addCommand(`cd ${Path.join(PROJECT_ROOT, "src")}`);
-            if (language == "csharp")
-                ps.addCommand(`mcs -debug Program${file_suffix}.cs`);
+            // ps.addCommand(`cd ${Path.join(PROJECT_ROOT,"src")}`)
+            if (language == "csharp") {
+                let local_file_path = `\"${Path.join(PROJECT_ROOT, "src/Program") + file_suffix + ".cs\""}`;
+                ps.addCommand(`mcs -debug ${local_file_path}`);
+            }
             yield ps.invoke().catch((compilation_error) => {
                 console.warn(compilation_error);
                 if (compilation_error.toLowerCase().includes("cs0016")) {
@@ -923,6 +938,7 @@ namespace Global{
                             if (heap_value.className.toLowerCase().includes("system.action"))
                                 return;
                             if (heap_value.className.toLowerCase().includes("system.tuple<") && heap_value.attributes.count() == 0) {
+                                console.log("removing 1", m, ss_k, heap_value);
                                 m.stack = m.stack.set(ss_k, m.stack.get(ss_k).set(s_k, { kind: "string", val: "null" }));
                                 m.heap = m.heap.remove(ref);
                                 return;
@@ -953,6 +969,7 @@ namespace Global{
                 });
             });
         });
+        console.log("map2", mem_trace);
         mem_trace.forEach((m, k) => {
             if (k == 0)
                 return;
@@ -989,6 +1006,7 @@ namespace Global{
             });
             if (refs_to_remove.length > 0) {
                 refs_to_remove.forEach(r => {
+                    console.log("removing 2", r, m.heap);
                     m.heap = m.heap.remove(r);
                 });
             }
