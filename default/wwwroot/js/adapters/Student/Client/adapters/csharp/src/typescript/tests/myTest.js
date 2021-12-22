@@ -538,14 +538,7 @@ function run(get_program, get_breakpoints, stop, language, retry_count = 0, max_
                 fs.rmdirSync(dirPath);
         };
         console.log("removing dir", DATA_ROOT);
-        try {
-            rmDir(DATA_ROOT, false);
-        }
-        catch (e) { }
-        try {
-            yield fs.mkdir(DATA_ROOT).catch(_ => { });
-        }
-        catch (e) { }
+        rmDir(DATA_ROOT, false);
         let PROGRAM = Path.join(DATA_ROOT, `Program${file_suffix}.exe`);
         const SOURCE = Path.join(DATA_ROOT, `Program${file_suffix}.cs`);
         let closure_program = `

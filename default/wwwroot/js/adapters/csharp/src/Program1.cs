@@ -1,23 +1,13 @@
-class A{
-  public int ParentField;
-}
-
-class B:A{
-  public new int ParentField;
-  public string ChildField;
-}
-
-class Program
-{
-  static void Main(string[] args)
-  {
-    A a = new A();
-    B b = new B();
-    b.ParentField = 90;
-    b.ChildField = "child";
-    A bintoa = b;
-    bintoa.ParentField = 5;
+class Program {
+  public static int f(int n){ 
+    if (n <= 2) {
+      return 1;
+    }
+    return f(n - 1) + f(n - 2);
   }
+  public static void Main() {
+    var v = f(5);
+  }
 }
 
 namespace Global{

@@ -587,3 +587,17 @@ body {
   font-family: sans-serif;
   font-weight: 700;
 }
+
+.save{
+  position: fixed;
+  bottom: 5px;
+  left: 5px;
+  width: 10px;
+  height: 10px;
+  background-color: red;
+  transition: background-color .3s;
+
+}
+.save--blue{
+  background-color: blue;
+}
